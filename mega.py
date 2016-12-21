@@ -2,11 +2,12 @@ import numpy as np
 import random
 
 from arms import ArmBernoulli
+from plots import regret_plt
 
 #  UNIVERSE PARAMETERS
 n_users = 3
 n_arms = 5
-t_horizon = 10000
+t_horizon = 100000
 
 arm_means = [0.2, 0.3, 0.5, 0.8, 0.9]
 
@@ -16,11 +17,11 @@ for i in range(n_arms):
 
 # ALGORITHM PARAMETERS
 
-c = 1
-d = 1
+c = 0.1
+d = 0.05
 alpha = 0.5
-beta = 0.5
-persistence_proba = 0.3
+beta = 0.8
+persistence_proba = 0.6
 
 
 class SecondaryUser:
@@ -37,6 +38,7 @@ class SecondaryUser:
 
         self.collided = False
         self.previous_arm = -1
+        self.arm = -1
 
     def decision(self, eps, t):
         user.previous_arm = user.arm
@@ -45,27 +47,32 @@ class SecondaryUser:
             # choose uniformely between available arms
             if (self.available_arms < t).sum() >= 1:
                 self.arm = np.random.choice(
-                    np.where(self.available_arms < t), size=1)
+                    np.where(self.available_arms < t)[0], size=1)[0]
             else:
                 # no available arms : no arms chosen.
                 self.arm = -1
         else:
             # exploit
-            self.arm = np.argmax(  # TODO find something more relevant
-                self.arms_rew[self.draws > 0] / self.draws[self.draws > 0])
-            # if an arm has changed reset persistence proba
-            if self.arm is not self.previous_arm:
-                self.persistence_proba = persistence_proba
+
+            # best available empirical average of available arms
+            available_arms = self.available_arms < t
+            empirical_m = self.arms_rew / np.maximum(self.draws, 1)
+            self.arm = np.argmax(available_arms * empirical_m)
+
+        # if an arm has changed reset persistence proba
+        if self.arm != self.previous_arm:
+            self.persistence_proba = persistence_proba
         return self.arm
 
 users = list()
 for i in range(n_users):
-    i.append(SecondaryUser())
+    users.append(SecondaryUser(n_arms))
 
-rewards = np.zeros(n_users, t_horizon)
+rewards = np.zeros((n_users, t_horizon))
+collisions = np.zeros((n_users, t_horizon), dtype=np.uint8)
 occupation = np.zeros(n_users)
 # main loop
-for t in range(t_horizon):
+for t in range(1, t_horizon):
     # update parameter for greedy algorithm
     eps = min(1, c * (n_arms ** 2) / (d**2 * (n_arms - 1) * t))
 
@@ -76,6 +83,7 @@ for t in range(t_horizon):
             user.persistence_proba *= alpha
             user.persistence_proba += alpha
         else:
+            collisions[i, t-1] = 1
             if random.random() < user.persistence_proba:
                 # the users persists !
                 user.previous_arm = user.arm
@@ -85,9 +93,10 @@ for t in range(t_horizon):
                 # mark arm as unavailable
                 user.available_arms[user.arm] = t + t**beta * random.random()
                 # check if conflict is resolved
+                user.collided = False
                 occupation[i] = -1
                 if (occupation == user.arm).sum() == 1:
-                    users[np.where(occupation == user.arm)].collided = False
+                    users[np.where(occupation == user.arm)[0]].collided = False
 
     # non collided users make a move
     for i, user in enumerate(users):
@@ -99,7 +108,18 @@ for t in range(t_horizon):
     for i, user in enumerate(users):
         if (occupation == user.arm).sum() > 1:
             user.collided = True
+
         else:
             rewards[i, t] = arms[user.arm].draw()
             user.arms_rew[user.arm] += rewards[i, t]
             user.draws[user.arm] += 1
+
+# regret curve
+print(collisions.sum())
+
+chunk = t_horizon // 10
+for i in range(10):
+    print("{:d} iterations, {:d} collisions".format(
+        chunk, collisions[:, i*chunk:(i+1)*chunk].sum()))
+regret_plt(arm_means, rewards)
+print("average reward {:f}, optimal 2.2".format(rewards.sum(axis=0).mean()))
