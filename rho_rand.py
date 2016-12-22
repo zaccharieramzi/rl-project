@@ -13,7 +13,7 @@ mab = list()
 for i in range(n_arms):
     mab.append(ArmBernoulli(means[i]))
 
-n_users = 3
+n_users = 1
 t_horizon = 10000
 
 
@@ -53,12 +53,18 @@ def rho_rand_strategy(mab, n_users, t_horizon):
     # Starts with an arangement to avoid collisions
     current_arm_selection = np.zeros(n_users)
 
+    # which ranked arm will be selected by player j next round.
+    next_arm_to_play = np.zeros(n_users, dtype='int32')
+
     # ranking of the favorites arms per player.
     # if favorite_arm(i, j) = x, x is the i^th favorite arm for player j
-    favorite_arm = np.zeros((n_users, n_users))
+    favorite_arm = np.zeros((n_users, n_users), dtype='int32')
 
     # index of arm to play for player j
-    index_arm_to_play = np.arange(n_users)
+    index_arm_to_play = np.zeros(n_users, dtype='int32')
+
+    for i in range(n_users):
+        index_arm_to_play[i] = i
 
     # regret accumulated
     regret = np.zeros(t_horizon+1)
@@ -70,7 +76,7 @@ def rho_rand_strategy(mab, n_users, t_horizon):
         decision_statistic[:, user] = sample_mean[:, user]/drawn_arms[:, user]
         favorite_arm[:, user] = np.argsort(
                                            decision_statistic[:, user]
-                                          )[::-1][:3]
+                                          )[::-1][:n_users]
 
     # Loop until t_horizon is achieved
     for t in range(t_horizon):
@@ -82,15 +88,18 @@ def rho_rand_strategy(mab, n_users, t_horizon):
             # if there is a collision draw a random arm for the next round
 #            print "user:", user
 #            print "index_arm_to_play:", index_arm_to_play
+#            print "next_arm_to_play", next_arm_to_play
 #            print "np.count", np.count_nonzero(index_arm_to_play == index_arm_to_play[user])
             if np.count_nonzero(
                                 index_arm_to_play ==
                                 index_arm_to_play[user]) != 1:
                 collision_matrix[index_arm_to_play[user], user] = 1
                 current_arm_selection[user] = random.randrange(n_users)
+                print current_arm_selection[user]
 
             # else receive the associate reward
             else:
+                print "we are drawing arm", index_arm_to_play[user]
                 reward_drawn = mab[
                                     index_arm_to_play[user]
                                   ].draw()
@@ -111,17 +120,22 @@ def rho_rand_strategy(mab, n_users, t_horizon):
                                                   ]
                 decision_statistic[:, user] = sample_mean[:, user] + \
                     np.sqrt(2*np.log(t+1) / drawn_arms[:, user])
+                print decision_statistic[:, user]
                 favorite_arm[:, user] = np.argsort(
                                             decision_statistic[:, user]
-                                                  )[::-1][:3]
+                                                  )[::-1][:n_users]
+                print favorite_arm[:, user]
             # Update arm to draw next round
-            index_arm_to_play[user] = favorite_arm[
+            next_arm_to_play[user] = favorite_arm[
                                                   current_arm_selection[user],
                                                   user
                                                   ]
+            print next_arm_to_play[user]
+        index_arm_to_play = next_arm_to_play.copy()
         regret[t+1] = regret[t] + best_means_sum - \
             cumulative_reward_per_slot
-    #    import pdb; pdb.set_trace()
+        regret[t+1]
+#        import pdb; pdb.set_trace()
     return regret
 
 # ploting the regret
