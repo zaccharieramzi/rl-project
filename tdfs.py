@@ -81,7 +81,7 @@ for t in range(t_horizon):
                 user.offset = random.randint(0, user.n_users - 1)
 
 best_arms = np.sort(np.array(arm_means))[-n_users:]
-regret = np.cumsum(n_best_arms.sum() - total_rewards)
+regret = np.cumsum(best_arms.sum() - total_rewards)
 plt.plot(range(t_horizon), regret, linewidth=2)
 plt.legend("regret")
 plt.show()
