@@ -83,9 +83,7 @@ class UCBUser(SecondaryUser):
                arms are available
         '''
         self.previous_arm = self.arm
-        # compute parameter for greedy algorithm
-        n_arms = self.available_arms.shape[0]
-
+        # mask of available arms
         available_arms = self.available_arms < t
         # initialisation
         if self.draws.min() == 0:
@@ -97,7 +95,6 @@ class UCBUser(SecondaryUser):
             else:
                 # no available arms : no arms chosen.
                 self.arm = -1
-            # UCB1 !
         else:
             # compute UCB stat
             stats = self.arms_rew / self.draws + np.sqrt(
@@ -117,6 +114,7 @@ class TSUser(SecondaryUser):
     '''
     def __init__(self, n_arms, params):
         super(TSUser, self).__init__(n_arms, params)
+        # store rewards as ints for the beta distribution computation
         self.arms_rew_b = np.zeros(n_arms, dtype='int')
 
     def decision(self, t):
@@ -128,9 +126,7 @@ class TSUser(SecondaryUser):
                arms are available
         '''
         self.previous_arm = self.arm
-        # compute parameter for greedy algorithm
-        n_arms = self.available_arms.shape[0]
-
+        # mask of available arms
         available_arms = self.available_arms < t
 
         # thompson sampling stat
@@ -148,7 +144,7 @@ class TSUser(SecondaryUser):
         the user draws from the chosen arm and updates its statistics
         Args :
                - arm (object) arm to draw from
-        Outputs : reward (int) the actual reward
+        Outputs : reward (float) the actual reward
         '''
         reward = arm.draw()
         self.arms_rew[self.arm] += reward
