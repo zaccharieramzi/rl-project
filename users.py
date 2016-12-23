@@ -66,3 +66,41 @@ class SecondaryUser:
         self.arms_rew[self.arm] += reward
         self.draws[self.arm] += 1
         return reward
+
+
+class UCBUser(SecondaryUser):
+
+    def decision(self, t):
+        '''
+        return the arm choice of a user, if user changes arm we reset its
+        *persistence_probability*
+        Args :
+               - t (int) timestep of the algorithm, necessary to know which
+               arms are available
+        '''
+        self.previous_arm = self.arm
+        # compute parameter for greedy algorithm
+        n_arms = self.available_arms.shape[0]
+
+        available_arms = self.available_arms < t
+        # initialisation
+        if self.draws.min() == 0:
+            # choose uniformely between arms that have never been tried
+            not_yet_tested = self.draws == 0
+            if (available_arms * not_yet_tested).sum() >= 1:
+                self.arm = np.random.choice(
+                    np.where(available_arms * not_yet_tested)[0], size=1)[0]
+            else:
+                # no available arms : no arms chosen.
+                self.arm = -1
+            # UCB1 !
+        else:
+            # best available empirical average of available arms
+            stats = self.arms_rew / self.draws + np.sqrt(
+                np.log(t) / (2 * self.draws))
+            self.arm = np.argmax(available_arms * stats)
+
+        # if an arm has changed reset persistence proba
+        if self.arm != self.previous_arm:
+            self.persistence_proba = self.params['persistence_proba_init']
+        return self.arm

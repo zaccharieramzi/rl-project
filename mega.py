@@ -2,7 +2,7 @@ import numpy as np
 import random
 
 from arms import ArmBernoulli
-from users import SecondaryUser
+from users import SecondaryUser, UCBUser
 
 from plots import regret_plt
 
@@ -28,7 +28,8 @@ params = {
 
 users = list()
 for i in range(n_users):
-    users.append(SecondaryUser(n_arms, params))
+    # users.append(SecondaryUser(n_arms, params))
+    users.append(UCBUser(n_arms, params))
 
 # global statistics
 rewards = np.zeros((n_users, t_horizon))
