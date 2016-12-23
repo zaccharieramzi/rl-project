@@ -51,7 +51,7 @@ class SecondaryUser:
             ucb_stat = np.sum(self.rewards, axis=1) / self.draws +\
                 np.sqrt(math.log(t) / self.draws)
             arms_sorted = np.argsort(ucb_stat)
-            return arms_sorted(top_arm_to_consider)
+            return arms_sorted[top_arm_to_consider]
 
 
 users = [SecondaryUser(n_arms, n_users) for i in range(n_users)]
