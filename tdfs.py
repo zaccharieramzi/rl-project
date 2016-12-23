@@ -1,6 +1,8 @@
+import math
+import random
+
 import matplotlib.pyplot as plt
 import numpy as np
-import random
 
 from arms import ArmBernoulli
 
@@ -47,18 +49,15 @@ class SecondaryUser:
             top_arm_to_consider = ((t - self.n_arms) % self.n_users) -\
                 self.offset
             ucb_stat = np.sum(self.rewards, axis=1) / self.draws +\
-                np.sqrt(log(t) / self.draws)
+                np.sqrt(math.log(t) / self.draws)
             arms_sorted = np.argsort(ucb_stat)
             return arms_sorted(top_arm_to_consider)
 
 
 users = [SecondaryUser(n_arms, n_users) for i in range(n_users)]
 total_rewards = np.zeros((t_horizon, 1))
-choices = np.zeros(n_users)
 for t in range(t_horizon):
-    for (i, user) in enumerate(users):
-        # each user makes its move
-        choices[i] = user.decision(t)
+    choices = [user.decision(t) for user in users]
     unique_choice, unique_count = np.unique(choices, return_counts=True)
     choice_count = dict(zip(unique_choice, unique_count))
     collisioned_users_id = (user_id for (user_id, choice) in enumerate(choices)
