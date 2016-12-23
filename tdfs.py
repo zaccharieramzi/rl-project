@@ -9,7 +9,7 @@ from arms import ArmBernoulli
 
 
 #  UNIVERSE PARAMETERS
-n_users = 2
+n_users = 3
 n_arms = 5
 t_horizon = 1000
 
@@ -53,7 +53,6 @@ class SecondaryUser:
                 np.sqrt(math.log(t) / self.draws)
             arms_sorted = np.argsort(ucb_stat)
             arms_sorted = arms_sorted[::-1]
-            print(arms_sorted)
             return arms_sorted[top_arm_to_consider]
 
 
@@ -82,7 +81,6 @@ for t in range(t_horizon):
             if user.collided_in_subsequence:
                 user.offset = random.randint(0, user.n_users - 1)
                 user.collided_in_subsequence = False
-    print([user.offset for user in users])
 
 best_arms = np.sort(np.array(arm_means))[-n_users:]
 regret = np.cumsum(best_arms.sum() - total_rewards)
