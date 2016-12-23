@@ -1,3 +1,4 @@
+import collections
 import math
 import random
 
@@ -30,7 +31,7 @@ class SecondaryUser:
         self.n_users = n_users
         self.offset = random.randint(0, n_users - 1)
         self.rewards = np.zeros((n_arms, t_horizon))
-        self.draws = np.zeros((n_arms, 1))
+        self.draws = np.zeros(n_arms)
         self.collided_in_subsequence = False
 
     def decision(self, t):
@@ -43,11 +44,11 @@ class SecondaryUser:
         if np.sum(self.draws > 0) < self.n_arms:
             # in this case we are still in initialization: we want all arms to
             # have been drawn at least once.
-            return (t % self.n_arms) - self.offset
+            return (t + self.offset) % n_arms
         else:
             # in this case we are in the main loop
-            top_arm_to_consider = ((t - self.n_arms) % self.n_users) -\
-                self.offset
+            top_arm_to_consider = (t - self.n_arms + self.offset) %\
+                self.n_users
             ucb_stat = np.sum(self.rewards, axis=1) / self.draws +\
                 np.sqrt(math.log(t) / self.draws)
             arms_sorted = np.argsort(ucb_stat)
@@ -58,8 +59,7 @@ users = [SecondaryUser(n_arms, n_users) for i in range(n_users)]
 total_rewards = np.zeros((t_horizon, 1))
 for t in range(t_horizon):
     choices = [user.decision(t) for user in users]
-    unique_choice, unique_count = np.unique(choices, return_counts=True)
-    choice_count = dict(zip(unique_choice, unique_count))
+    choice_count = collections.Counter(choices)
     collisioned_users_id = (user_id for (user_id, choice) in enumerate(choices)
                             if choice_count[choice] > 1)
     for user_id in collisioned_users_id:
