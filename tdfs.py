@@ -73,7 +73,7 @@ for t in range(t_horizon):
             user.draws[choice] += 1
             user.rewards[choice, t] = reward
             total_rewards[t] += reward
-    if (t == n_arms) or (t > n_arms) and ((t - n_arms) % n_users == 0):
+    if (t == n_arms) or ((t > n_arms) and ((t - n_arms) % n_users == 0)):
         # We are at the end of a subsequence corresponding to
         # initialization or classic. Therefore, we must correct the offsets.
         for user in users:
