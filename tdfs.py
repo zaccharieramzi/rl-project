@@ -36,7 +36,7 @@ class SecondaryUser:
         if np.sum(self.draws > 0) < self.n_arms:
             # in this case we are still in initialization: we want all arms to
             # have been drawn at least once.
-            return (t + self.offset) % n_arms
+            return (t + self.offset) % self.n_arms
         else:
             # in this case we are in the main loop
             top_arm_to_consider = (t - self.n_arms + self.offset) %\
