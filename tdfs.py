@@ -63,7 +63,7 @@ class SecondaryUser:
         '''
         betas = np.zeros(self.n_arms)
         for arm_id in range(n_arms):
-            betas(arm_id) = np.random.beta(
+            betas[arm_id] = np.random.beta(
                 np.sum(self.rewards[arm_id, :]) + 1,
                 self.draws[arm_id] - np.sum(self.rewards[arm_id, :]) + 1)
         return np.argmax(betas)
