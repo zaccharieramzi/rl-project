@@ -109,12 +109,12 @@ def tdfs_routine(n_users, n_arms, t_horizon, arm_means, alg='ucb', plot=False):
 
 
 def kl_divergence_bernoulli(p, q):
-    return p*math.log(p/q) + (1−p)*math.log((1−p)/(1−q))
+    return p*math.log(p/q) + (1-p)*math.log((1-p)/(1-q))
 
 
 def x_k(arm_means, k):
     ordered_arm_means = np.sort(arm_means)
-    ordered_arm_means = ordered_arms[::-1]
+    ordered_arm_means = ordered_arm_means[::-1]
     ordered_arm_means = ordered_arm_means[:k]
     return sum(
         (sum(
@@ -126,7 +126,7 @@ def x_k(arm_means, k):
 
 def log_upper_bound(n_users, arm_means):
     ordered_arm_means = np.sort(arm_means)
-    ordered_arm_means = ordered_arms[::-1]
+    ordered_arm_means = ordered_arm_means[::-1]
     first_sum = sum(
         (sum(
             (x_k(arm_means, k) * ordered_arm_means[i]
