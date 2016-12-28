@@ -8,13 +8,6 @@ import numpy as np
 from arms import ArmBernoulli
 
 
-#  UNIVERSE PARAMETERS
-n_users = 3
-n_arms = 5
-t_horizon = 1000
-arm_means = [0.2, 0.3, 0.5, 0.8, 0.9]
-
-
 class SecondaryUser:
     ''' class used for user behaviour
     '''
