@@ -12,7 +12,7 @@ class SecondaryUser:
     ''' class used for user behaviour
     '''
 
-    def __init__(self, n_arms, n_users):
+    def __init__(self, n_arms, n_users, t_horizon):
         self.n_arms = n_arms
         self.n_users = n_users
         self.offset = random.randint(0, n_users - 1)
@@ -55,18 +55,21 @@ class SecondaryUser:
                 - int: the index of the arm chosen by this user.
         '''
         betas = np.zeros(self.n_arms)
-        for arm_id in range(n_arms):
+        top_arm_to_consider = (t + self.offset) % self.n_users
+        for arm_id in range(self.n_arms):
             betas[arm_id] = np.random.beta(
                 np.sum(self.rewards[arm_id, :]) + 1,
                 self.draws[arm_id] - np.sum(self.rewards[arm_id, :]) + 1)
-        return np.argmax(betas)
+        arms_sorted = np.argsort(betas)
+        arms_sorted = arms_sorted[::-1]
+        return arms_sorted[top_arm_to_consider]
 
 
 def tdfs_routine(n_users, n_arms, t_horizon, arm_means, alg='ucb', plot=False):
     arms = list()
     for i in range(n_arms):
         arms.append(ArmBernoulli(arm_means[i]))
-    users = [SecondaryUser(n_arms, n_users) for i in range(n_users)]
+    users = [SecondaryUser(n_arms, n_users, t_horizon) for i in range(n_users)]
     total_rewards = np.zeros((t_horizon, 1))
     for t in range(t_horizon):
         choices = [user.decision(t, alg=alg) for user in users]
@@ -98,6 +101,8 @@ def tdfs_routine(n_users, n_arms, t_horizon, arm_means, alg='ucb', plot=False):
         best_arms = np.sort(np.array(arm_means))[-n_users:]
         regret = np.cumsum(best_arms.sum() - total_rewards)
         plt.plot(range(t_horizon), regret, linewidth=2)
-        plt.legend("regret")
+        plt.ylabel("Regret")
+        plt.xlabel("Time")
+        plt.legend("Regret function of time for TDFS using {0}".format(alg))
         plt.show()
     return total_rewards
