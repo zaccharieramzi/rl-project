@@ -72,7 +72,7 @@ class SecondaryUser:
         arms_sorted = arms_sorted[::-1]
         return arms_sorted[self.rank_to_consider]
 
-    def draw_from_arm(self, arm):
+    def draw_from_arm(self, arm, t):
         ''' The user draws from the chosen arm and updates its statistics
                 Args :
                         - arm (object) arm to draw from
@@ -96,37 +96,37 @@ def rho_rand_routine(n_users, n_arms, t_horizon, arm_means, alg='ucb',
         Output:
             - total_rewards (ndarray): total reward at each time step.
     '''
-    users = [SecondaryUser(n_arms, n_users) for i in range(n_users)]
+    users = [SecondaryUser(n_arms, n_users, t_horizon) for i in range(n_users)]
     total_rewards = np.zeros((t_horizon, 1))
     for t in range(t_horizon):
+        # initialization
         if t < n_arms:
-            # initialization
             choices = [user.decision(t) for user in users]
             for (user_id, choice) in enumerate(choices):
                 arm = arms[choice]
                 user = users[user_id]
                 user.arm_id = choice
-                user.draw_from_arm(arm)
-            else:
-                # main loop
-                choices = [user.decision(t) for user in users]
-                choice_count = collections.Counter(choices)
-                # watch for collisions and update 'rank_to_consider'
-                collisioned_users_id = (user_id for (user_id, choice)
-                                        in enumerate(choices)
-                                        if choice_count[choice] > 1)
-                for user_id in collisioned_users_id:
-                    users[user_id].rank_to_consider = random.randrange(n_users)
-                # draw the arms that have to be drawn (selected only ones)
-                arms_to_draw = [choice for choice
-                                in choices if choice_count[choice] == 1]
-                for (user_id, choice) in enumerate(choices):
-                    if choice in arms_to_draw:
-                        arm = arms[choice]
-                        user = users[user_id]
-                        user.arm_id = choice
-                        reward = user.draw_from_arm(arm)
-                        total_rewards[t] += reward
+                user.draw_from_arm(arm, t)
+        # main loop
+        else:
+            choices = [user.decision(t) for user in users]
+            choice_count = collections.Counter(choices)
+            # watch for collisions and update 'rank_to_consider'
+            collisioned_users_id = (user_id for (user_id, choice)
+                                    in enumerate(choices)
+                                    if choice_count[choice] > 1)
+            for user_id in collisioned_users_id:
+                users[user_id].rank_to_consider = random.randrange(n_users)
+            # draw the arms that have to be drawn (selected only ones)
+            arms_to_draw = [choice for choice
+                            in choices if choice_count[choice] == 1]
+            for (user_id, choice) in enumerate(choices):
+                if choice in arms_to_draw:
+                    arm = arms[choice]
+                    user = users[user_id]
+                    user.arm_id = choice
+                    reward = user.draw_from_arm(arm, t)
+                    total_rewards[t] += reward
     if plot:
         best_arms = np.sort(np.array(arm_means))[-n_users:]
         regret = np.cumsum(best_arms.sum() - total_rewards)
