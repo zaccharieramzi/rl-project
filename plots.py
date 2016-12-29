@@ -2,20 +2,20 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def regret_plt(means, rewards):
+def regret_plt(best_arms_mean, rewards, upper_bound=None):
     '''
     plot the regret curve through iterations
     Args :
-           - means (list or vector) arms means
-           - rewards (np array : n_users, t_horizon) rewards for each user
-           at every timesteps
+           - best_arms_mean (list or vector): means of the best arms considered
+           - rewards (np array : t_horizon): total rewards at every timestep
+           - upper_bound (np array : t_horizon): upper bound for the regret
+           at every timestep
     '''
-    n_users = rewards.shape[0]
-    t_horizon = rewards.shape[1]
-
-    n_best_arms = np.sort(np.array(means))[-n_users:]
-
-    regret = np.cumsum(n_best_arms.sum() - rewards.sum(axis=0))
-    plt.plot(range(t_horizon), regret, linewidth=2)
-    plt.legend("regret")
+    regret = np.cumsum(best_arms_mean.sum() - rewards)
+    plt.plot(regret, linewidth=2, label="Regret")
+    if upper_bound:
+        plt.plot(upper_bound, "r--", label="Upper Bound")
+    plt.ylabel("Regret")
+    plt.xlabel("Time")
+    plt.legend(loc=4)
     plt.show()

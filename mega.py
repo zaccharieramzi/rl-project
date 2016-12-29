@@ -33,5 +33,9 @@ chunk = t_horizon // 10
 for i in range(10):
     print("{:d} iterations, {:d} collisions".format(
         chunk, collisions[:, i*chunk:(i+1)*chunk].sum()))
-regret_plt(arm_means, rewards)
+best_arms_mean = np.sort(arm_means)
+best_arms_mean = best_arms_mean[::-1]
+best_arms_mean = best_arms_mean[:n_users]
+total_rewards = np.sum(rewards, axis=0)
+regret_plt(best_arms_mean, total_rewards)
 print("average reward {:f}, optimal 2.2".format(rewards.sum(axis=0).mean()))
