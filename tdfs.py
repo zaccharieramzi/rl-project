@@ -106,3 +106,34 @@ def tdfs_routine(n_users, n_arms, t_horizon, arm_means, alg='ucb', plot=False):
         plt.legend("Regret function of time for TDFS using {0}".format(alg))
         plt.show()
     return total_rewards
+
+
+def kl_divergence_bernoulli(p, q):
+    return p*math.log(p/q) + (1-p)*math.log((1-p)/(1-q))
+
+
+def x_k(arm_means, k):
+    ordered_arm_means = np.sort(arm_means)
+    ordered_arm_means = ordered_arm_means[::-1]
+    ordered_arm_means = ordered_arm_means[:k]
+    return sum(
+        (sum(
+            (1 / kl_divergence_bernoulli(arm_mean_smaller, arm_mean)
+             for arm_mean_smaller in arm_means
+             if arm_mean_smaller < arm_mean))
+         for arm_mean in ordered_arm_means))
+
+
+def log_upper_bound(n_users, arm_means):
+    ordered_arm_means = np.sort(arm_means)
+    ordered_arm_means = ordered_arm_means[::-1]
+    first_sum = sum(
+        (sum(
+            (x_k(arm_means, k) * ordered_arm_means[i]
+             for k in range(n_users)))
+         for i in range(n_users)))
+    second_sum = sum(
+        (arm_mean * max(1/kl_divergence_bernoulli(
+            arm_mean, ordered_arm_means[n_users]), 0)
+         for arm_mean in arm_means if arm_mean < ordered_arm_means[n_users]))
+    return n_users * (first_sum-second_sum)
