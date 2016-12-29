@@ -2,14 +2,13 @@ import collections
 import math
 import random
 
-import matplotlib.pyplot as plt
 import numpy as np
 
 from arms import ArmBernoulli
 from .users import SecondaryUser
 
 
-def tdfs_routine(n_users, n_arms, t_horizon, arm_means, alg='ucb', plot=False):
+def tdfs_routine(n_users, n_arms, t_horizon, arm_means, alg='ucb'):
     arms = list()
     for i in range(n_arms):
         arms.append(ArmBernoulli(arm_means[i]))
@@ -41,14 +40,6 @@ def tdfs_routine(n_users, n_arms, t_horizon, arm_means, alg='ucb', plot=False):
                 if user.collided_in_subsequence:
                     user.offset = random.randint(0, user.n_users - 1)
                     user.collided_in_subsequence = False
-    if plot:
-        best_arms = np.sort(np.array(arm_means))[-n_users:]
-        regret = np.cumsum(best_arms.sum() - total_rewards)
-        plt.plot(range(t_horizon), regret, linewidth=2)
-        plt.ylabel("Regret")
-        plt.xlabel("Time")
-        plt.legend("Regret function of time for TDFS using {0}".format(alg))
-        plt.show()
     return total_rewards
 
 
