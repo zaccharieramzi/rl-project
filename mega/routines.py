@@ -45,8 +45,8 @@ def mega_routine(n_users, params, n_arms, t_horizon, arm_means, alg='ucb'):
                     user.collided = False
                     occupation[i] = -1
                     if (occupation == user.arm).sum() == 1:
-                        users[np.where(occupation == user.arm)[0]].collided = \
-                            False
+                        users[np.where(
+                            occupation == user.arm)[0][0]].collided = False
 
         # non collided users make a move
         for i, user in enumerate(users):
