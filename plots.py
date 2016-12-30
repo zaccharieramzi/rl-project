@@ -17,5 +17,5 @@ def regret_plt(best_arms_mean, rewards, upper_bound=None):
         plt.plot(upper_bound, "r--", label="Upper Bound")
     plt.ylabel("Regret")
     plt.xlabel("Time")
-    plt.legend(loc=4)
+    plt.legend(loc=2)
     plt.show()
