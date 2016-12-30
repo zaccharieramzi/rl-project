@@ -4,20 +4,24 @@ import matplotlib.pyplot as plt
 import collections
 
 from arms import ArmBernoulli
+from .users import SecondaryUser
 
 
-def rho_rand_routine(n_users, n_arms, t_horizon, arm_means, alg='ucb',
-                     plot=False):
+def rho_rand_routine(n_users, n_arms, t_horizon, arm_means, alg='ucb'):
     ''' Apply rho_rand avoidance strategy to a pb with t_horizon time steps.
         Args:
             - n_users (int): number of users.
             - n_arms (int): number of arms.
             - t_horizon (int): time steps.
             - alg (str): algorithm decision. 'ucb' or 'ts'
-            - plot (Bool): True if plot is needed
+            - arm_means (list): the list of arm means to be used in this
+            routine.
         Output:
             - total_rewards (ndarray): total reward at each time step.
     '''
+    arms = list()
+    for i in range(n_arms):
+        arms.append(ArmBernoulli(arm_means[i]))
     users = [SecondaryUser(n_arms, n_users, t_horizon) for i in range(n_users)]
     total_rewards = np.zeros((t_horizon, 1))
     for t in range(t_horizon):
@@ -49,12 +53,4 @@ def rho_rand_routine(n_users, n_arms, t_horizon, arm_means, alg='ucb',
                     user.arm_id = choice
                     reward = user.draw_from_arm(arm, t)
                     total_rewards[t] += reward
-    if plot:
-        best_arms = np.sort(np.array(arm_means))[-n_users:]
-        regret = np.cumsum(best_arms.sum() - total_rewards)
-        plt.plot(range(t_horizon), regret, linewidth=2)
-        plt.ylabel("Regret")
-        plt.xlabel("Time")
-        plt.legend("Regret function of time for TDFS using {0}".format(alg))
-        plt.show()
     return total_rewards
