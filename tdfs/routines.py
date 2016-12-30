@@ -87,7 +87,7 @@ def x_k(arm_means, k):
          for arm_mean in ordered_arm_means))
 
 
-def log_upper_bound(n_users, arm_means):
+def tdfs_log_upper_bound(n_users, arm_means):
     '''Calculates the upper bound constant of the expected regret for a given
     multi-player and multi-arm bandit problem.
         Args:
