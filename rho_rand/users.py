@@ -35,7 +35,7 @@ class SecondaryUser:
             # in this case we are in the main loop
             ucb_stat = np.sum(self.rewards, axis=1) / self.draws +\
                 np.sqrt(math.log(t) / self.draws)
-            arms_sorted = np.argsort(ucb_stat)[::-1][:n_users]
+            arms_sorted = np.argsort(ucb_stat)[::-1][:self.n_users]
             return arms_sorted[self.rank_to_consider]
 
     def decision_ts(self, t):
