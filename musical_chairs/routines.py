@@ -1,46 +1,13 @@
 import numpy as np
-from arms import ArmBernoulli
 import random
-import matplotlib.pyplot as plt
 import collections
 import math
 
-
-class SecondaryUser:
-    ''' class used for user behaviour
-    '''
-
-    def __init__(self, n_arms, n_users, t_horizon):
-        self.n_arms = n_arms
-        self.n_users = n_users
-        self.rewards = np.zeros((n_arms, t_horizon))
-        self.draws = np.zeros(n_arms, dtype='int')
-        self.top_arms = np.zeros(n_users, dtype='int')
-        self.fixed_on_arm = -1
-        self.arm_id = -1
-
-    def draw_from_arm(self, arm, t):
-        ''' The user draws from the chosen arm and updates its statistics
-                Args :
-                        - arm (object) arm to draw from
-                Outputs : reward (int) the actual reward
-        '''
-        reward = arm.draw()
-        self.draws[self.arm_id] += 1
-        self.rewards[self.arm_id, t] = reward
-        return reward
-
-    def rank_arms(self):
-        ''' Rank arms before phase 2.
-            Output:
-                - ndarray: n_users top arms.
-        '''
-        user_stat = np.sum(self.rewards, axis=1) / self.draws
-        arms_sorted = np.argsort(user_stat)[::-1][:self.n_users]
-        return arms_sorted
+from arms import ArmBernoulli
+from .users import SecondaryUser
 
 
-def mc_routine(n_users, params, n_arms, t_horizon, arm_means, plot=False):
+def mc_routine(n_users, params, n_arms, t_horizon, arm_means):
     ''' Apply muscial chairs algorithm to a pb with t_horizon time steps.
         Args:
             - n_users (int): number of users.
@@ -103,12 +70,4 @@ def mc_routine(n_users, params, n_arms, t_horizon, arm_means, plot=False):
             t_temp = 0
             for user_id in range(n_users):
                 users[user_id].fixed_on_arm = -1
-    if plot:
-        best_arms = np.sort(np.array(arm_means))[-n_users:]
-        regret = np.cumsum(best_arms.sum() - total_rewards)
-        plt.plot(range(t_horizon), regret, linewidth=2)
-        plt.ylabel("Regret")
-        plt.xlabel("Time")
-        plt.legend("Regret function of time for Musical chairs")
-        plt.show()
     return total_rewards
