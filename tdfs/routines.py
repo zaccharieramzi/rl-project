@@ -9,6 +9,17 @@ from .users import SecondaryUser
 
 
 def tdfs_routine(n_users, n_arms, t_horizon, arm_means, alg='ucb'):
+    '''Apply TDFS avoidance strategy to a pb with t_horizon time steps.
+        Args:
+            - n_users (int): number of users.
+            - n_arms (int): number of arms.
+            - t_horizon (int): time steps.
+            - alg (str): algorithm decision. 'ucb' or 'ts'
+            - arm_means (list[float]): the list of arm means to be used in this
+            routine.
+        Output:
+            - total_rewards (ndarray): total reward at each time step.
+    '''
     arms = list()
     for i in range(n_arms):
         arms.append(ArmBernoulli(arm_means[i]))
@@ -44,10 +55,27 @@ def tdfs_routine(n_users, n_arms, t_horizon, arm_means, alg='ucb'):
 
 
 def kl_divergence_bernoulli(p, q):
+    '''Calculates the Kullback-Leibler divergence between two Bernoulli
+    distributions of parameters p and q (D(p||q)).
+        Args:
+            - p (float): the parameter (mean) of the first Bernoulli dist
+            - q (float): the parameter (mean) of the second Bernoulli dist
+        Output:
+            - float: the KL divergence between the two dist
+    '''
     return p*math.log(p/q) + (1-p)*math.log((1-p)/(1-q))
 
 
 def x_k(arm_means, k):
+    '''Calculates the x_k as defined in https://arxiv.org/pdf/0910.2065.pdf
+    (Theorem 2). It is a useful function to have for the calculation of the
+    upper bound.
+        Args:
+            - arm_means (list[float]): the list of all arm means
+            - k (int): the index at which we calculate x_k
+        Output:
+            - float: the x_k
+    '''
     ordered_arm_means = np.sort(arm_means)
     ordered_arm_means = ordered_arm_means[::-1]
     ordered_arm_means = ordered_arm_means[:k]
@@ -59,7 +87,16 @@ def x_k(arm_means, k):
          for arm_mean in ordered_arm_means))
 
 
-def log_upper_bound(n_users, arm_means):
+def tdfs_log_upper_bound(n_users, arm_means):
+    '''Calculates the upper bound constant of the expected regret for a given
+    multi-player and multi-arm bandit problem.
+        Args:
+            - n_users (int): the number of players in the pb
+            - arm_means (list[float]): the means of the arms considered in the
+            pb
+        Output:
+            - float: the constant for the logarithmic upper bound of the pb
+    '''
     ordered_arm_means = np.sort(arm_means)
     ordered_arm_means = ordered_arm_means[::-1]
     first_sum = sum(
