@@ -25,9 +25,9 @@ def mc_routine(n_users, params, n_arms, t_horizon, arm_means):
     total_rewards = np.zeros((t_horizon, 1))
     if t_horizon < params["t1"]:
         raise ValueError("horizon must be at least t1")
-    # t_sequence in [0;t0+t1]. if t_sequence<t0 --> exploration phase.
-    # if t0<t_sequence<t1 --> eploitation phase.
-    t_sequence = 0
+    # t_sequence in [0;t0+t1]. if t_temp<t0 --> exploration phase.
+    # if t0<t_temp<t1 --> eploitation phase.
+    t_temp = 0
     for t in range(t_horizon):
         # phase 1: exploring the arms in order to rank them.
         if t_temp < params["t0"]:
