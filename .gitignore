@@ -90,3 +90,7 @@ ENV/
 
 # Mac OS settings
 .DS_Store
+
+# Images
+*.png
+*.jp[e]g
